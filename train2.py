@@ -6,25 +6,19 @@ from random import random, randint, sample
 import numpy as np
 import torch
 import torch.nn as nn
-from tensorboardX import SummaryWriter
-
 from src.deep_q_network import DeepQNetwork
 from src.tetris import Tetris
 from collections import deque
 
 
 
-def train(epochs=10000, batch_memory_size=30000, num_decay_epochs=2000,
-          model_save_interval=1000, lr=1e-3, gamma=0.99, initial_epsilon=1,
-          final_epsilon=1e-3, batch_size=512, width=10, height=20, block_size=30):
+def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma,
+          initial_epsilon, final_epsilon, batch_size, width, height, block_size):
+
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(123)
+        torch.cuda.manual_seed(151)  ## número primo que escogimos ##
     else:
-        torch.manual_seed(123)
-    if os.path.isdir('tensorboard'):
-        shutil.rmtree('tensorboard')
-    os.makedirs('tensorboard')
-    writer = SummaryWriter('tensorboard')
+        torch.manual_seed(151)
     env = Tetris(width=width, height=height, block_size=block_size)
     model = DeepQNetwork()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -36,11 +30,12 @@ def train(epochs=10000, batch_memory_size=30000, num_decay_epochs=2000,
         state = state.cuda()
 
     replay_memory = deque(maxlen=batch_memory_size)
-    epoch = 0
-    while epoch < epochs:
+
+    ep = 0
+    while ep < epochs:
         next_steps = env.get_next_states()
         # Exploration or exploitation
-        epsilon = final_epsilon + (max(num_decay_epochs - epoch, 0) * (
+        epsilon = final_epsilon + (max(num_decay_epochs - ep, 0) * (
                 initial_epsilon - final_epsilon) / num_decay_epochs)
         u = random()
         random_action = u <= epsilon
@@ -77,7 +72,7 @@ def train(epochs=10000, batch_memory_size=30000, num_decay_epochs=2000,
             continue
         if len(replay_memory) < batch_memory_size / 10:
             continue
-        epoch += 1
+        
         batch = sample(replay_memory, min(len(replay_memory), batch_size))
         state_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
         state_batch = torch.stack(tuple(state for state in state_batch))
@@ -104,26 +99,19 @@ def train(epochs=10000, batch_memory_size=30000, num_decay_epochs=2000,
         loss.backward()
         optimizer.step()
 
-        print("[Epoch {}/{}]\t\t[Lines destroyed: {}]\t\t[Score: {}]".format(
-            epoch,
-            epochs,
-            final_cleared_lines,
-            final_score))
-        writer.add_scalar('Train/Score', final_score, epoch - 1)
-        writer.add_scalar('Train/Tetrominoes', final_tetrominoes, epoch - 1)
-        writer.add_scalar('Train/Cleared lines', final_cleared_lines, epoch - 1)
+        print('[Epoch {}/{}]\t\t[Lines destroyed: {}]\t\t[Score: {}]'.format(ep+1, epochs,
+            final_cleared_lines, final_score))
 
-        if epoch > 0 and epoch % model_save_interval == 0:
-            torch.save(model, "{}/tetris_{}".format('trained_models', epoch))
-
-    torch.save(model, "{}/tetris".format('trained_models'))
+        ep += 1
+        if ep % model_save_interval == 0 and ep > 0:
+            torch.save(model, f'trained_models/tetris_{ep}')
 
 
 if __name__ == "__main__":
-    epochs = 15                ## total de épocas por correr ##
+    epochs = 10                ## total de épocas por correr ##
     batch_memory_size = 3000   ##  ## 
     num_decay_epochs = 2000    ##  ## decay_epochs
-    model_save_interval = 5    ## cada cuanto se salvará un modelo ##
+    model_save_interval = 500  ## cada cuanto se salvará un modelo ##
     lr = 1e-3                  ## rango de aprendizaje ##
     gamma = 0.99               ##  ##
     initial_epsilon = 1        ##  ##

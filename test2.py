@@ -5,7 +5,6 @@ import cv2
 from src.tetris import Tetris
 
 
-
 def test(width=10, height=20, block_size=30, fps=300):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(123)
@@ -20,8 +19,7 @@ def test(width=10, height=20, block_size=30, fps=300):
     env.reset()
     if torch.cuda.is_available():
         model.cuda()
-    simulation = cv2.VideoWriter('output.mp4v', cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                          (int(1.5*width*block_size), height*block_size))
+
     while True:
         next_steps = env.get_next_states()
         next_actions, next_states = zip(*next_steps.items())
@@ -34,9 +32,7 @@ def test(width=10, height=20, block_size=30, fps=300):
         _, done = env.step(action, render=True)
 
         if done:
-            simulation.release()
             break
-        
 
 
 if __name__ == "__main__":
@@ -46,4 +42,3 @@ if __name__ == "__main__":
     fps = 300               ## frames por segundo ##
 
     test(width, height, block_size, fps)
-
