@@ -129,8 +129,8 @@ if __name__ == "__main__":
     initial_epsilon = 1        ##  ##
     final_epsilon = 1e-3       ##  ##
     batch_size = 512           ##  ##
-    width = 10                 ## bloques de ancho de tetris ##
-    height = 20                ## bloques de altura de tetris ##
+    width = 10                 ## ancho en bloques del tetris ##
+    height = 20                ## anlto en bloques del tetris ##
     block_size = 30            ## tamaño del bloque ##
 
     train(epochs, batch_memory_size, num_decay_epochs,

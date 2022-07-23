@@ -6,7 +6,7 @@ from src.tetris import Tetris
 
 
 
-def test(width=10, height=20, block_size=30, fps=300, output='output.mp4v'):
+def test(width=10, height=20, block_size=30, fps=300):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(123)
     else:
@@ -20,7 +20,7 @@ def test(width=10, height=20, block_size=30, fps=300, output='output.mp4v'):
     env.reset()
     if torch.cuda.is_available():
         model.cuda()
-    out = cv2.VideoWriter(output, cv2.VideoWriter_fourcc(*"MJPG"), fps,
+    simulation = cv2.VideoWriter('output.mp4v', cv2.VideoWriter_fourcc(*"MJPG"), fps,
                           (int(1.5*width*block_size), height*block_size))
     while True:
         next_steps = env.get_next_states()
@@ -31,20 +31,19 @@ def test(width=10, height=20, block_size=30, fps=300, output='output.mp4v'):
         predictions = model(next_states)[:, 0]
         index = torch.argmax(predictions).item()
         action = next_actions[index]
-        _, done = env.step(action, render=True, video=out)
+        _, done = env.step(action, render=True)
 
         if done:
-            out.release()
+            simulation.release()
             break
         
 
 
 if __name__ == "__main__":
-    width = 10
-    height = 20
-    block_size = 30
-    fps = 300
-    output = 'output.mp4v'
+    width = 10              ## ancho en bloques del tetris ##
+    height = 20             ## allto en bloques del tetris ##
+    block_size = 30         ## tamaño del los bloques ##
+    fps = 300               ## frames por segundo ##
 
-    test(width, height, block_size, fps, output)
+    test(width, height, block_size, fps)
 
