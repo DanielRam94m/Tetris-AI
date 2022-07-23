@@ -1,7 +1,5 @@
-"""
-@author: Viet Nguyen <nhviet1009@gmail.com>
-"""
 import argparse
+from turtle import width
 import torch
 import cv2
 from src.tetris import Tetris
@@ -16,7 +14,7 @@ def get_args():
     parser.add_argument("--block_size", type=int, default=30, help="Size of a block")
     parser.add_argument("--fps", type=int, default=300, help="frames per second")
     parser.add_argument("--saved_path", type=str, default="trained_models")
-    parser.add_argument("--output", type=str, default="output.mp4")
+    parser.add_argument("--output", type=str, default="output.mp4v")
 
     args = parser.parse_args()
     return args
@@ -28,9 +26,9 @@ def test(opt):
     else:
         torch.manual_seed(123)
     if torch.cuda.is_available():
-        model = torch.load("{}/tetris".format(opt.saved_path))
+        model = torch.load("{}/tetris_2000".format(opt.saved_path))
     else:
-        model = torch.load("{}/tetris".format(opt.saved_path), map_location=lambda storage, loc: storage)
+        model = torch.load("{}/tetris_2000".format(opt.saved_path), map_location=lambda storage, loc: storage)
     model.eval()
     env = Tetris(width=opt.width, height=opt.height, block_size=opt.block_size)
     env.reset()
@@ -56,5 +54,6 @@ def test(opt):
 
 
 if __name__ == "__main__":
+    width = 10
     opt = get_args()
     test(opt)

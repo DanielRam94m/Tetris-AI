@@ -1,6 +1,3 @@
-"""
-@author: Viet Nguyen <nhviet1009@gmail.com>
-"""
 import torch.nn as nn
 
 class DeepQNetwork(nn.Module):
@@ -10,7 +7,6 @@ class DeepQNetwork(nn.Module):
         self.conv1 = nn.Sequential(nn.Linear(4, 64), nn.ReLU(inplace=True))
         self.conv2 = nn.Sequential(nn.Linear(64, 64), nn.ReLU(inplace=True))
         self.conv3 = nn.Sequential(nn.Linear(64, 1))
-
         self._create_weights()
 
     def _create_weights(self):
@@ -23,5 +19,4 @@ class DeepQNetwork(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-
         return x

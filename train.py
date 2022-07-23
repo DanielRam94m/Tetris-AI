@@ -1,6 +1,3 @@
-"""
-@author: Viet Nguyen <nhviet1009@gmail.com>
-"""
 import argparse
 import os
 import shutil
@@ -18,7 +15,7 @@ from collections import deque
 
 def get_args():
     parser = argparse.ArgumentParser(
-        """Deep Q Network como modelo de IA en Tetris""")
+        """Juego tetris usando modelo entrenado de Deep Q Learning""")
     parser.add_argument("--width", type=int, default=10, help="The common width for all images")
     parser.add_argument("--height", type=int, default=20, help="The common height for all images")
     parser.add_argument("--block_size", type=int, default=30, help="Size of a block")
@@ -143,5 +140,22 @@ def train(opt):
 
 
 if __name__ == "__main__":
-    opt = get_args()
-    train(opt)
+    num_epochs = int(15)             ## total de épocas por correr ##
+    replay_memory_size = int(3000)   ##  ##
+    num_decay_epochs = float(2000)   ##  ##
+    save_interval = int(5)           ## cada cuanto se salvará un modelo ##
+    log_path = str('tensorboard')    ## folder para los parámetros ##
+    saved_path = str('saved_models') ## folder para los modelos ##
+    lr = float(1e-3)                 ## rango de aprendizaje ##
+    gamma = float(0.99)              ##  ##
+    initial_epsilon = float(1)       ##  ##
+    final_epsilon = float(1e-3)      ##  ##
+    batch_size = int(512)            ##  ##
+    width = int(10)                  ## bloques de ancho ##
+    height = int(20)                 ## bloques de altura ##
+    block_size = int(30)             ## tamaño del bloque ##
+
+    #train(num_epochs, replay_memory_size, num_decay_epochs, )
+
+    opt = get_args() ## llama a get_args()
+    train(opt)       ## llama a train
