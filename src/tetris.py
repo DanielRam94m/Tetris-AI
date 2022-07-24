@@ -12,6 +12,7 @@ style.use("ggplot")
 
 
 class Tetris:
+    #todo switcher
     piece_colors = [
         (0, 0, 0),
         (255, 255, 0),
@@ -23,12 +24,12 @@ class Tetris:
         (0, 0, 255)
     ]
 
-    pieces = [
+    #todo que se vean las rotaciones posibles
+    shapes = [
         [[1, 1],
          [1, 1]],
 
-        [[0, 2, 0],
-         [2, 2, 2]],
+        [[2, 2, 2, 2]],
 
         [[0, 3, 3],
          [3, 3, 0]],
@@ -36,19 +37,23 @@ class Tetris:
         [[4, 4, 0],
          [0, 4, 4]],
 
-        [[5, 5, 5, 5]],
+        [[5, 5, 5],
+         [0, 5, 0]],
 
-        [[0, 0, 6],
-         [6, 6, 6]],
+        [[6, 0],
+         [6, 0],
+         [6, 6]],
 
-        [[7, 0, 0],
-         [7, 7, 7]]
+        [[0, 7],
+         [0, 7],
+         [7, 7]]
     ]
 
     def __init__(self, height=20, width=10, block_size=20):
         self.height = height
         self.width = width
         self.block_size = block_size
+        self.text_size = self.block_size / 2
         self.extra_board = np.ones((self.height * self.block_size, self.width * int(self.block_size / 2), 3),
                                    dtype=np.uint8) * np.array([204, 204, 255], dtype=np.uint8)
         self.text_color = (200, 20, 220)
@@ -59,25 +64,18 @@ class Tetris:
         self.score = 0
         self.tetrominoes = 0
         self.cleared_lines = 0
-        self.bag = list(range(len(self.pieces)))
+        self.bag = list(range(len(self.shapes)))
         random.shuffle(self.bag)
         self.ind = self.bag.pop()
-        self.piece = [row[:] for row in self.pieces[self.ind]]
+        self.piece = [row[:] for row in self.shapes[self.ind]]
         self.current_pos = {"x": self.width // 2 - len(self.piece[0]) // 2, "y": 0}
         self.gameover = False
         return self.get_state_properties(self.board)
 
+    #todo que rotate se entienda
     def rotate(self, piece):
-        num_rows_orig = num_cols_new = len(piece)
-        num_rows_new = len(piece[0])
-        rotated_array = []
+        return [list(row) for row in zip(*reversed(piece))]
 
-        for i in range(num_rows_new):
-            new_row = [0] * num_cols_new
-            for j in range(num_cols_new):
-                new_row[j] = piece[(num_rows_orig - 1) - j][i]
-            rotated_array.append(new_row)
-        return rotated_array
 
     def get_state_properties(self, board):
         lines_cleared, board = self.check_cleared_rows(board)
@@ -140,10 +138,10 @@ class Tetris:
 
     def new_piece(self):
         if not len(self.bag):
-            self.bag = list(range(len(self.pieces)))
+            self.bag = list(range(len(self.shapes)))
             random.shuffle(self.bag)
         self.ind = self.bag.pop()
-        self.piece = [row[:] for row in self.pieces[self.ind]]
+        self.piece = [row[:] for row in self.shapes[self.ind]]
         self.current_pos = {"x": self.width // 2 - len(self.piece[0]) // 2,
                             "y": 0
                             }
@@ -247,22 +245,22 @@ class Tetris:
         img = np.concatenate((img, self.extra_board), axis=1)
 
 
-        cv2.putText(img, "Score:", (self.width * self.block_size + int(self.block_size / 2), self.block_size),
+        cv2.putText(img, "Score:", (self.width * self.block_size + int(self.text_size), self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
         cv2.putText(img, str(self.score),
-                    (self.width * self.block_size + int(self.block_size / 2), 2 * self.block_size),
+                    (self.width * self.block_size + int(self.text_size), 2 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
 
-        cv2.putText(img, "Pieces:", (self.width * self.block_size + int(self.block_size / 2), 4 * self.block_size),
+        cv2.putText(img, "Pieces:", (self.width * self.block_size + int(self.text_size), 4 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
         cv2.putText(img, str(self.tetrominoes),
-                    (self.width * self.block_size + int(self.block_size / 2), 5 * self.block_size),
+                    (self.width * self.block_size + int(self.text_size), 5 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
 
-        cv2.putText(img, "Lines:", (self.width * self.block_size + int(self.block_size / 2), 7 * self.block_size),
+        cv2.putText(img, "Lines:", (self.width * self.block_size + int(self.text_size), 7 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
         cv2.putText(img, str(self.cleared_lines),
-                    (self.width * self.block_size + int(self.block_size / 2), 8 * self.block_size),
+                    (self.width * self.block_size + int(self.text_size), 8 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
 
         if video:
