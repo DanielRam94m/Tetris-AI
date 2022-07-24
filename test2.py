@@ -5,6 +5,9 @@ import cv2
 from src.tetris import Tetris
 #from src.tetris import Tetris2
 
+#TODO: correr N veces cada modelo
+#TODO: crear archivo con métricas obtenidas (modelo_, corrida_N, destroyed_lines, score)
+
 #todo: check
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if device == 'cuda':

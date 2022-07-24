@@ -62,7 +62,7 @@ class Tetris:
     def reset(self):
         self.board = [[0] * self.width for _ in range(self.height)]
         self.score = 0
-        self.tetrominoes = 0
+        self.pieces_set = 0
         self.cleared_lines = 0
         self.bag = list(range(len(self.shapes)))
         random.shuffle(self.bag)
@@ -72,17 +72,20 @@ class Tetris:
         self.gameover = False
         return self.get_state_properties(self.board)
 
-    #todo que rotate se entienda
+    '''
+    método que da vuelta a las piezas
+    recibe: una pieza
+    retorna: la pieza rotada
+    '''
     def rotate(self, piece):
         return [list(row) for row in zip(*reversed(piece))]
 
 
     def get_state_properties(self, board):
-        lines_cleared, board = self.check_cleared_rows(board)
+        deleted_lines, board = self.check_full_rows(board)
         holes = self.get_holes(board)
-        bumpiness, height = self.get_bumpiness_and_height(board)
-
-        return torch.FloatTensor([lines_cleared, holes, bumpiness, height])
+        bumpiness, sum_heights = self.get_bumpiness_height(board)
+        return torch.FloatTensor([deleted_lines, holes, bumpiness, sum_heights])
 
     def get_holes(self, board):
         num_holes = 0
@@ -93,17 +96,23 @@ class Tetris:
             num_holes += len([x for x in col[row + 1:] if x == 0])
         return num_holes
 
-    def get_bumpiness_and_height(self, board):
+    '''
+    mask: tablero con False donde hay 0 y True donde no
+    dist_to_roof: lista de distancias del box lleno más alto al techo del tablero
+    filled_heights: lista de alturas de cuadros llenos por columna
+    sum_heights: suma de todas las alturas
+    diffs_next_col: diferencia de altura entre una columna y la siguiente]
+    sum_bumpiness: suma de las diferencias de alturas de una columna y la siguiente
+    '''
+    def get_bumpiness_height(self, board):
         board = np.array(board)
-        mask = board != 0
-        invert_heights = np.where(mask.any(axis=0), np.argmax(mask, axis=0), self.height)
-        heights = self.height - invert_heights
-        total_height = np.sum(heights)
-        currs = heights[:-1]
-        nexts = heights[1:]
-        diffs = np.abs(currs - nexts)
-        total_bumpiness = np.sum(diffs)
-        return total_bumpiness, total_height
+        mask = 0 != board
+        dist_to_roof = np.where(mask.any(axis=0), np.argmax(mask, axis=0), self.height)
+        filled_heights = self.height - dist_to_roof
+        sum_heights = np.sum(filled_heights)
+        diffs_next_col = np.abs(filled_heights[:-1] - filled_heights[1:])
+        sum_bumpiness = np.sum(diffs_next_col )
+        return sum_bumpiness, sum_heights
 
     def get_next_states(self):
         states = {}
@@ -184,7 +193,13 @@ class Tetris:
                     board[y + pos["y"]][x + pos["x"]] = piece[y][x]
         return board
 
-    def check_cleared_rows(self, board):
+    '''
+    método que chequea si hay filas llenas y de ser así llama a remove_row
+    con la lista de índices de filas a eliminar
+    recibe: el tablero
+    retorna: cantidad de filas eliminadas, el tablero
+    '''
+    def check_full_rows(self, board):
         to_delete = []
         for i, row in enumerate(board):
             if 0 not in row:
@@ -193,6 +208,11 @@ class Tetris:
             board = self.remove_row(board, to_delete)
         return len(to_delete), board
 
+    '''
+    método que elimina filas del tablero
+    recibe: el tablero y los índices de filas a eliminar
+    retorna: el tablero con las filas eliminadas
+    '''
     def remove_row(self, board, indices):
         for i in indices:
             board.pop(i)
@@ -216,11 +236,11 @@ class Tetris:
 
         self.board = self.store(self.piece, self.current_pos)
 
-        lines_cleared, self.board = self.check_cleared_rows(self.board)
-        score = 1 + (lines_cleared ** 2) * self.width
+        deleted_lines, self.board = self.check_full_rows(self.board)
+        score = 1 + (deleted_lines**2)*self.width
         self.score += score
-        self.tetrominoes += 1
-        self.cleared_lines += lines_cleared
+        self.pieces_set += 1
+        self.cleared_lines += deleted_lines
         if not self.gameover:
             self.new_piece()
         if self.gameover:
@@ -253,7 +273,7 @@ class Tetris:
 
         cv2.putText(img, "Pieces:", (self.width * self.block_size + int(self.text_size), 4 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
-        cv2.putText(img, str(self.tetrominoes),
+        cv2.putText(img, str(self.pieces_set),
                     (self.width * self.block_size + int(self.text_size), 5 * self.block_size),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=self.text_color)
 

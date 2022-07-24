@@ -9,12 +9,18 @@ import pygame
 Variables glogales
 '''
 game_width =  800
-game_height = 700
-box_size = 30
+game_height = 600
+block_size = 30
 #width = 10
 #height = 20
 cols = 10
 rows = 20
+
+
+grid_width = block_size*cols
+grid_height = block_size*rows
+top_left_x = (game_width - (grid_width)) // 2
+top_left_y = game_height - (grid_height)
 
 '''
 #TODO: Class Shapes
@@ -191,10 +197,13 @@ def draw_text_middle():
   pass
 
 def draw_grid(surface):
-  surface.fill((0,0,0))
+  surface.fill((0,0,0)) #todo: (255,255,255)
   pygame.font.init()
   #todo cambiar comicsans font
   font = pygame.font.SysFont('comicsans', 60)
+  label = font.render('Tetris', 1, (255,255, 255)) #todo: (0,0,0)
+  'colocamos el label en el medio'
+  surface.blit(label, (top_left_x + grid_width)/2 - (label.get_width()/2), 30)
 
 def clear_rows():
   pass
