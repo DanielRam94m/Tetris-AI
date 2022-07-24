@@ -194,9 +194,9 @@ class Tetris:
         return len(to_delete), board
 
     def remove_row(self, board, indices):
-        for i in indices[::-1]:
-            del board[i]
-            board = [[0 for _ in range(self.width)]] + board
+        for i in indices:
+            board.pop(i)
+            board.insert(0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         return board
 
     def step(self, action, render=True, video=None):
