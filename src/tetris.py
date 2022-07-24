@@ -186,10 +186,10 @@ class Tetris:
 
     def check_cleared_rows(self, board):
         to_delete = []
-        for i, row in enumerate(board[::-1]):
+        for i, row in enumerate(board):
             if 0 not in row:
-                to_delete.append(len(board) - 1 - i)
-        if len(to_delete) > 0:
+                to_delete.append(i)
+        if to_delete != []:
             board = self.remove_row(board, to_delete)
         return len(to_delete), board
 
