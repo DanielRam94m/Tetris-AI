@@ -85,19 +85,19 @@ class Agent():
 
         action = next_actions[index]
 
-        reward, done = env.step(action, render=True)
+        reward, done = env.perform_action(action)
         
         self.replay_memory.append([actual_state, reward, next_state, done])
 
         return done, next_state
 
 def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma,
-          initial_epsilon, final_epsilon, batch_size, width, height, block_size):
+          initial_epsilon, final_epsilon, batch_size):
     
     # Creamos una instancia del agente
     agent = Agent(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma, initial_epsilon, final_epsilon, batch_size)
     # Creamos una instancia del juego
-    env = Tetris(width=width, height=height, block_size=block_size)
+    env = Tetris()
     #  Se resetea el entorno 
     actual_state = env.reset()
     # Se asigna el modelo y estado a la GPU o CPU
@@ -116,7 +116,7 @@ def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, 
             actual_state = actual_state.to(device)
         learn = agent.learn()
         final_score = env.score
-        final_lines_destroyed = env.cleared_lines
+        final_lines_destroyed = env.lines_destroyed
         actual_state = env.reset()
         if learn:
             ep += 1
@@ -131,16 +131,13 @@ if __name__ == "__main__":
     epochs = 10                ## total de épocas por correr ##
     batch_memory_size = 3000   ##  ## 
     num_decay_epochs = 2000    ##  ## decay_epochs
-    model_save_interval = 5    ## cada cuanto se salvará un modelo ##
+    model_save_interval = 10    ## cada cuanto se salvará un modelo ##
     lr = 1e-3                  ## rango de aprendizaje ##
     gamma = 0.99               ##  ##
     initial_epsilon = 1        ##  ##
     final_epsilon = 1e-3       ##  ##
     batch_size = 512           ##  ##
-    width = 10                 ## ancho en bloques del tetris ##
-    height = 20                ## anlto en bloques del tetris ##
-    block_size = 30            ## tamaño del bloque ##
 
     train(epochs, batch_memory_size, num_decay_epochs,
           model_save_interval, lr, gamma, initial_epsilon, 
-          final_epsilon, batch_size, width, height, block_size)
+          final_epsilon, batch_size)
