@@ -9,14 +9,7 @@ from collections import deque
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-#Global variable device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if device == 'cuda':
-    torch.cuda.manual_seed(151)
-else:
-    torch.manual_seed(151)
-
+from utils import device
 
 def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma,
           epsilon, decay, batch_size):
@@ -41,7 +34,7 @@ def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, 
         while not done:
             '''SIMULATION STEP'''
             done, next_state = agent.step(env, actual_state, ep)
-            actual_state = next_state  
+            actual_state = next_state.to(device)  
             actual_state = actual_state.to(device)
         learn = agent.learn()
         final_score = env.score

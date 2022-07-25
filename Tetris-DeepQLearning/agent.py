@@ -4,14 +4,7 @@ import torch.nn as nn
 from deep_q_network import DeepQNetwork
 from collections import deque
 from random import random, randint, sample
-
-#Global variable device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if device == 'cuda':
-    torch.cuda.manual_seed(151)
-else:
-    torch.manual_seed(151)
-
+from utils import device
 class Agent():
     def __init__(self, epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma, epsilon, decay, batch_size):
         self.epochs = epochs
@@ -34,8 +27,8 @@ class Agent():
         
         batch = sample(self.replay_memory, min(len(self.replay_memory), self.batch_size))
         state_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
-        state_batch = torch.stack(tuple(state for state in state_batch)).to(device)  
-        reward_batch = torch.from_numpy(np.array(reward_batch, dtype=np.float32)[:, None]).to(device)  
+        state_batch = torch.stack(tuple(state.to(device) for state in state_batch))
+        reward_batch = torch.from_numpy(np.array(reward_batch, dtype=np.float32)[:, None]).to(device) 
         next_state_batch = torch.stack(tuple(state for state in next_state_batch)).to(device)  
 
         #state_batch = state_batch.to(device)
