@@ -34,13 +34,13 @@ class Agent():
         
         batch = sample(self.replay_memory, min(len(self.replay_memory), self.batch_size))
         state_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
-        state_batch = torch.stack(tuple(state for state in state_batch))
-        reward_batch = torch.from_numpy(np.array(reward_batch, dtype=np.float32)[:, None])
-        next_state_batch = torch.stack(tuple(state for state in next_state_batch))
+        state_batch = torch.stack(tuple(state for state in state_batch)).to(device)  
+        reward_batch = torch.from_numpy(np.array(reward_batch, dtype=np.float32)[:, None]).to(device)  
+        next_state_batch = torch.stack(tuple(state for state in next_state_batch)).to(device)  
 
-        state_batch = state_batch.to(device)
-        reward_batch = reward_batch.to(device)
-        next_state_batch = next_state_batch.to(device)
+        #state_batch = state_batch.to(device)
+        #reward_batch = reward_batch.to(device)
+        #next_state_batch = next_state_batch.to(device)
 
         q_values = self.model(state_batch)
         self.model.eval()
@@ -62,8 +62,8 @@ class Agent():
         ''' Obtiene todos los posibles siguientes estados del tablero para la figura actual'''
         next_steps = env.get_next_states() 
         next_actions, next_states = zip(*next_steps.items()) # separo los estados de los IDs
-        next_states = torch.stack(next_states) # Uno los tensores de cada estado en un solo tensor
-        next_states = next_states.to(device)  
+        next_states = torch.stack(next_states).to(device)   # Uno los tensores de cada estado en un solo tensor
+        #next_states = next_states.to(device)  
         with torch.no_grad():
             predictions = self.model(next_states)[:, 0]
         self.model.train()
