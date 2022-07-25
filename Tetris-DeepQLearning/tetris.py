@@ -197,7 +197,9 @@ class Tetris:
         return colision
 
     '''
-    #todo
+    método que determina si la figura se desbordó del techo del tablero
+    recibe figura y posicion en el tablero
+    retorno bool true en caso que de el juego este terminado
     '''
     def truncate(self, shape, pos):
         gameover = False
@@ -297,9 +299,6 @@ class Tetris:
         #Retorna al score y si el juego esta acabado
         return score, self.gameover
 
-    '''
-    #todo
-    '''
     def render(self):
         if not self.gameover:
             img = [shape_colors[p] for row in self.get_current_board_state() for p in row]
@@ -323,11 +322,6 @@ class Tetris:
                     (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 2 * BLOCK_SIZE),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)
 
-        '''cv2.putText(img, "Pieces:", (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 4 * BLOCK_SIZE),
-                    fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)
-        cv2.putText(img, str(self.shapes_set),
-                    (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 5 * BLOCK_SIZE),
-                    fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)'''
 
         cv2.putText(img, "Lines:", (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 7 * BLOCK_SIZE),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)

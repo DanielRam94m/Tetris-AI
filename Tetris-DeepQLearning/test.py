@@ -1,19 +1,9 @@
-#import argparse
-#from turtle import width
 import torch
-#import cv2
 from tetris import Tetris
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if device == 'cuda':
-    torch.cuda.manual_seed(151)
-else:
-    torch.manual_seed(151)
+from utils import device
 
 def test(model_name, t):
     if device == 'cuda':
@@ -40,7 +30,8 @@ def test(model_name, t):
 
 
 if __name__ == "__main__":
-    times = 15
+    print('\n-------------------------------------------------------------------------')
+    times = int(input('digite cuantas veces quiere correr cada uno de los 5 modelos:  '))
     models = ['tetris_500', 'tetris_1000', 'tetris_1500', 'tetris_2000', 'tetris_2500']
 
     df_test_metrics = pd.DataFrame(columns=['model', 'run', 'lines destroyed', 'score'])

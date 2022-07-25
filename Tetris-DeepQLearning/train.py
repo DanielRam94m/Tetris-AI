@@ -11,6 +11,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from utils import device
 
+'''
+método para entrenar el modelo 
+recibe los parametros del modelo y cada cuantas iteraciones tiene que pasar para guardar el modelo
+retorna los modelos de cada n iteraciones
+'''
 def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma,
           epsilon, decay, batch_size):
     # Creamos una instancia del agente
@@ -28,12 +33,12 @@ def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, 
     '''SIMULATION'''
     ep = 0
     while ep < epochs:
-        done = False
+        game_over = False
         learn = False
         #Mientras no se acaba el juego
-        while not done:
+        while not game_over:
             '''SIMULATION STEP'''
-            done, next_state = agent.step(env, actual_state, ep)
+            game_over, next_state = agent.step(env, actual_state, ep)
             actual_state = next_state.to(device)  
             actual_state = actual_state.to(device)
         learn = agent.learn()
@@ -60,15 +65,18 @@ def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, 
 
 
 if __name__ == "__main__":
-    epochs = 2500              ## total de épocas por correr ##
+    print('\n----------------------------------------------')
+    ## total de épocas por correr ##
+    epochs = int(input('digite cantidad de épocas: '))
+    ## cada cuanto se salvará un modelo ##
+    model_save_interval = int(input('digite intervalo para salvar modelo: '))
     batch_memory_size = 3000   ## tamaño de la memoria ## 
-    num_decay_epochs = 2000    ##  ## 
-    model_save_interval = 500  ## cada cuanto se salvará un modelo ##
-    lr = 1e-3                  ## rango de aprendizaje ##
-    gamma = 0.99               ##  ##
-    epsilon = 1                ##  ##
-    decay = 1e-3               ##  ##
-    batch_size = 512           ##  ##
+    num_decay_epochs = 2000    ## decay_epochs 
+    lr = 1e-3                  ## rango de tasa aprendizaje ##
+    gamma = 0.99               ## gamma
+    epsilon = 1                ## epsilon
+    decay = 1e-3               ## decay
+    batch_size = 512           ## tamaño de memoria para entrenamiento
 
     train(epochs, batch_memory_size, num_decay_epochs,
           model_save_interval, lr, gamma, epsilon, 
