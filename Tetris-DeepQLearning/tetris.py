@@ -54,7 +54,7 @@ shapes = [
 class Tetris:
     def __init__(self):
         self.background_board = np.ones((HEIGHT * BLOCK_SIZE, WIDTH * int(BLOCK_SIZE / 2), 3),
-                                   dtype=np.uint8) * np.array([204, 204, 255], dtype=np.uint8)
+                                   dtype=np.uint8) * np.array([224, 224, 224], dtype=np.uint8)
         self.reset()
 
     '''
@@ -323,11 +323,11 @@ class Tetris:
                     (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 2 * BLOCK_SIZE),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)
 
-        cv2.putText(img, "Pieces:", (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 4 * BLOCK_SIZE),
+        '''cv2.putText(img, "Pieces:", (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 4 * BLOCK_SIZE),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)
         cv2.putText(img, str(self.shapes_set),
                     (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 5 * BLOCK_SIZE),
-                    fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)
+                    fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)'''
 
         cv2.putText(img, "Lines:", (WIDTH * BLOCK_SIZE + int(TEXT_SIZE), 7 * BLOCK_SIZE),
                     fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=TEXT_COLOR)
