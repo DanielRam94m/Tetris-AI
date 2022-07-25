@@ -5,6 +5,9 @@ from random import random, randint, sample
 from src.deep_q_network import DeepQNetwork
 from src.tetris import Tetris
 from collections import deque
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #Global variable device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -14,19 +17,18 @@ else:
     torch.manual_seed(151)
 
 class Agent():
-    def __init__(self, epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma, initial_epsilon, final_epsilon, batch_size):
+    def __init__(self, epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma, epsilon, decay, batch_size):
         self.epochs = epochs
         self.batch_memory_size = batch_memory_size
         self.num_decay_epochs = num_decay_epochs
         self.model_save_interval = model_save_interval
         self.lr = lr
         self.gamma = gamma
-        self.initial_epsilon = initial_epsilon
-        self.final_epsilon = final_epsilon
+        self.epsilon = epsilon
+        self.decay = decay
         self.batch_size = batch_size
         self.model = DeepQNetwork()
         self.replay_memory = deque(maxlen=self.batch_memory_size)
-
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         self.loss_model = nn.MSELoss()
     
@@ -61,12 +63,12 @@ class Agent():
 
 
     def step(self, env, actual_state, ep):
-        next_steps = env.get_next_states()  ###cambiar a get state 
-
-        epsilon = self.final_epsilon + (max(self.num_decay_epochs - ep, 0) * (
-                self.initial_epsilon - self.final_epsilon) / self.num_decay_epochs)
-        u = random()
-        random_action = u <= epsilon
+        ''' Obtiene todos los posibles siguientes estados del tablero para la figura actual'''
+        next_steps = env.get_next_states() 
+        '''Disminucion gradual del epsilon'''
+        epsilon = self.decay + (max(self.num_decay_epochs - ep, 0) * (
+                self.epsilon - self.decay) / self.num_decay_epochs)
+       
         next_actions, next_states = zip(*next_steps.items())
         next_states = torch.stack(next_states) ###get state
         next_states = next_states.to(device)  
@@ -74,28 +76,30 @@ class Agent():
         with torch.no_grad():
             predictions = self.model(next_states)[:, 0]
         self.model.train()
-
-        if random_action:
-            index = randint(0, len(next_steps) - 1)
+        ''' Escoge accion'''
+        if random() > epsilon: # si variable aleatorio menor que valor epsilon
+            # toma la mejor accion conocida
+            index_action = torch.argmax(predictions).item()
         else:
-            index = torch.argmax(predictions).item()
-
-        next_state = next_states[index, :]
+            # elige una accion al azar 
+            index_action = randint(0, len(next_steps) - 1)        
+        action = next_actions[index_action]
+        next_state = next_states[index_action, :]
         next_state = next_state.to(device) 
-
-        action = next_actions[index]
-
+        ''' Ejecuta accion'''
         reward, done = env.perform_action(action)
-        
+        ''' Almacena en memoria '''
         self.replay_memory.append([actual_state, reward, next_state, done])
 
         return done, next_state
 
 def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma,
-          initial_epsilon, final_epsilon, batch_size):
-    
+          epsilon, decay, batch_size):
     # Creamos una instancia del agente
-    agent = Agent(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma, initial_epsilon, final_epsilon, batch_size)
+    agent = Agent(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, gamma, 
+                  epsilon, decay, batch_size)
+    # Creamos dataframe de métricas de test
+    df_train_metrics = pd.DataFrame(columns=['epoch', 'lines destroyed', 'score'])
     # Creamos una instancia del juego
     env = Tetris()
     #  Se resetea el entorno 
@@ -110,7 +114,7 @@ def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, 
         learn = False
         #Mientras no se acaba el juego
         while not done:
-            '''STEP'''
+            '''SIMULATION STEP'''
             done, next_state = agent.step(env, actual_state, ep)
             actual_state = next_state  
             actual_state = actual_state.to(device)
@@ -123,8 +127,18 @@ def train(epochs, batch_memory_size, num_decay_epochs, model_save_interval, lr, 
             if ep % model_save_interval == 0 and ep > 0:
                 torch.save(agent.model, f'trained_models/tetris_{ep}')
             print('[Epoch {}/{}]\t\t[Lines destroyed: {}]\t\t[Score: {}]'.format(ep, epochs, final_lines_destroyed, final_score))
+            new_row = {'epoch':ep, 'lines destroyed':final_lines_destroyed, 'score':final_score}
+            df_train_metrics = df_train_metrics.append(new_row, ignore_index=True)
         else:
             print('[Loading simulation in memory...]')
+    # Generemos archivo csv con las métricas de train
+    df_train_metrics.to_csv('train_metrics.csv')
+
+    # Se genera imagen de lineplot
+    sns.set_style('whitegrid')
+    #sns.boxenplot(x='epoch', y='score', data=df_train_metrics)
+    sns.lineplot(x='epoch', y='score', data=df_train_metrics)
+    plt.savefig('train_metrics.png')
 
 
 if __name__ == "__main__":
@@ -134,10 +148,10 @@ if __name__ == "__main__":
     model_save_interval = 10    ## cada cuanto se salvará un modelo ##
     lr = 1e-3                  ## rango de aprendizaje ##
     gamma = 0.99               ##  ##
-    initial_epsilon = 1        ##  ##
-    final_epsilon = 1e-3       ##  ##
+    epsilon = 1        ##  ##
+    decay = 1e-3       ##  ##
     batch_size = 512           ##  ##
 
     train(epochs, batch_memory_size, num_decay_epochs,
-          model_save_interval, lr, gamma, initial_epsilon, 
-          final_epsilon, batch_size)
+          model_save_interval, lr, gamma, epsilon, 
+          decay, batch_size)

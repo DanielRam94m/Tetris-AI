@@ -3,9 +3,11 @@
 import torch
 #import cv2
 from src.tetris import Tetris
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-#TODO: correr N veces cada modelo
-#TODO: crear archivo con métricas obtenidas (modelo_, corrida_N, destroyed_lines, score)
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if device == 'cuda':
@@ -13,11 +15,11 @@ if device == 'cuda':
 else:
     torch.manual_seed(151)
 
-def test():
+def test(model_name, t):
     if device == 'cuda':
-        model = torch.load("{}/tetris_2000".format('trained_models'))
+        model = torch.load("{}/{}".format('trained_models', model_name))
     else:
-        model = torch.load("{}/tetris_2000".format('trained_models'), map_location=lambda storage, loc: storage)
+        model = torch.load("{}/{}".format('trained_models', model_name), map_location=lambda storage, loc: storage)
     model.eval()
     model.to(device) 
     env = Tetris()
@@ -34,9 +36,31 @@ def test():
         _, done = env.perform_action(action)
 
         if done:
-            break
+            return env.lines_destroyed, env.score
 
 
 if __name__ == "__main__":
+    times = 3
+    models = ['tetris_1000', 'tetris_2000']
 
-    test()
+    df_test_metrics = pd.DataFrame(columns=['model', 'run', 'lines destroyed', 'score'])
+
+    # corremos el test n veces para cada uno
+    for model in models:
+        for t in range(times):
+            print(f'running model {model}\t\ttime:{t+1}')
+            lines_destroyed, score = test(model, t)
+            # vamos llenando dataframe
+            new_row = {'model':model, 'run':t, 'lines destroyed':lines_destroyed, 'score':score}
+            df_test_metrics = df_test_metrics.append(new_row, ignore_index=True)
+
+    # Generemos archivo csv con las métricas de test
+    df_test_metrics.to_csv('test_metrics.csv')
+
+    # Se genera imagen de boxplot
+    sns.set_style('whitegrid')
+    sns.boxenplot(x='model', y='score', data=df_test_metrics)
+    plt.savefig('test_metrics.png')
+
+    
+
